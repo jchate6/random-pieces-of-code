@@ -1,0 +1,24 @@
+
+
+###  list of files   ####
+
+                                                                           README
+                                            coj2m002-en12-20190413-0012-e00.fits
+                                     at2019dke_fts_20190413_red_2.0_58587_1.fits
+                                 flatat2019dke_fts_20190413_red_2.0_58587_1.fits
+                                   ttat2019dke_fts_20190413_red_2.0_58587_1.fits	rectified spectrum
+                               ttflatat2019dke_fts_20190413_red_2.0_58587_1.fits	rectified spectrum
+                                  nttat2019dke_fts_20190413_red_2.0_58587_1.fits	rectified spectrum	flat corrected
+                                        sens_fts_20190304_red_eg274_58556_1.fits	sensitivity function
+                               ttat2019dke_fts_20190413_red_2.0_58587_1_2df.fits	rectified spectrum	2D wave & flux calib
+                              nttat2019dke_fts_20190413_red_2.0_58587_1_2df.fits	rectified spectrum	flat corrected	2D wave & flux calib
+                                    at2019dke_fts_20190413_blue_2.0_58587_1.fits
+                                flatat2019dke_fts_20190413_blue_2.0_58587_1.fits
+                                  ttat2019dke_fts_20190413_blue_2.0_58587_1.fits	rectified spectrum
+                              ttflatat2019dke_fts_20190413_blue_2.0_58587_1.fits	rectified spectrum
+                                        sens_fts_20190304_blu_eg274_58556_1.fits	sensitivity function
+                              ttat2019dke_fts_20190413_blue_2.0_58587_1_2df.fits	rectified spectrum	2D wave & flux calib
+                         nttat2019dke_fts_20190413_merge_2.0_58587_1_2df_ex.fits	rectified spectrum	flat corrected	2D wave & flux calib	fast extraction
+                                            coj2m002-en12-20190413-0014-w00.fits
+                                                     KEY2017AB-001_504255274.tar
+                                                     KEY2017AB-001_504255274.pdf

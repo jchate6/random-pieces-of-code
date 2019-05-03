@@ -1,0 +1,29 @@
+
+
+###  list of files   ####
+
+                                                                           README
+                                            ogg2m001-en06-20190123-0018-e00.fits
+                                      SN2019np_ftn_20190124_red_2.0_58508_1.fits
+                                  arc_SN2019np_ftn_20190124_red_2.0_58508_1.fits
+                                  flatSN2019np_ftn_20190124_red_2.0_58508_1.fits
+                                    ttSN2019np_ftn_20190124_red_2.0_58508_1.fits	rectified spectrum
+                                ttarc_SN2019np_ftn_20190124_red_2.0_58508_1.fits	rectified spectrum
+                                ttflatSN2019np_ftn_20190124_red_2.0_58508_1.fits	rectified spectrum
+                                   nttSN2019np_ftn_20190124_red_2.0_58508_1.fits	rectified spectrum	flat corrected
+                                    sens_ftn_20180624_red_bd28d4211_58294_1.fits	sensitivity function
+                                ttSN2019np_ftn_20190124_red_2.0_58508_1_2df.fits	rectified spectrum	2D wave & flux calib
+                               nttSN2019np_ftn_20190124_red_2.0_58508_1_2df.fits	rectified spectrum	flat corrected	2D wave & flux calib
+                                     SN2019np_ftn_20190124_blue_2.0_58508_1.fits
+                                 arc_SN2019np_ftn_20190124_blue_2.0_58508_1.fits
+                                 flatSN2019np_ftn_20190124_blue_2.0_58508_1.fits
+                                   ttSN2019np_ftn_20190124_blue_2.0_58508_1.fits	rectified spectrum
+                               ttarc_SN2019np_ftn_20190124_blue_2.0_58508_1.fits	rectified spectrum
+                               ttflatSN2019np_ftn_20190124_blue_2.0_58508_1.fits	rectified spectrum
+                                    sens_ftn_20180624_blu_bd28d4211_58294_1.fits	sensitivity function
+                               ttSN2019np_ftn_20190124_blue_2.0_58508_1_2df.fits	rectified spectrum	2D wave & flux calib
+                          nttSN2019np_ftn_20190124_merge_2.0_58508_1_2df_ex.fits	rectified spectrum	flat corrected	2D wave & flux calib	fast extraction
+                                            ogg2m001-en06-20190123-0019-a00.fits
+                                            ogg2m001-en06-20190123-0020-w00.fits
+                                                     KEY2017AB-001_441010222.tar
+                                                     KEY2017AB-001_441010222.pdf
