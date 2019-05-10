@@ -21,6 +21,43 @@ from datetime import datetime
 import os
 from glob import glob
 import argparse
+import warnings
+
+
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', time_in=None):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        time_in     - Optional  : if given, will estimate time remaining until completion (Datetime object)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    if time_in is not None:
+        now = datetime.now()
+        delta_t = now-time_in
+        delta_t = delta_t.total_seconds()
+        total_time = delta_t/iteration*(float(total)-iteration)
+        # print(total_time, delta_t, iteration, float(total))
+        if total_time > 90:
+            time_left = '| {0:.1f} min remaining |'.format(total_time/60)
+        elif total_time > 5400:
+            time_left = '| {0:.1f} hrs remaining |'.format(total_time/60/60)
+        else:
+            time_left = '| {0:.1f} sec remaining |'.format(total_time)
+    else:
+        time_left = ' '
+    print('\r%s |%s| %s%%%s%s' % (prefix, bar, percent, time_left, suffix), end='\r')
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 
 def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
@@ -82,11 +119,14 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
     if title:
         fig.suptitle(title)
 
+    time_in = datetime.now()
+
     def update(n):
         """ this method is required to build FuncAnimation
         <file> = frame currently being iterated
         output: return plot.
         """
+
         # get data/Header from Fits
         with fits.open(fits_files[n], ignore_missing_end=True) as hdul:
             try:
@@ -113,7 +153,9 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
         try:
             # set wcs grid/axes
             wcs = WCS(header)  # get wcs transformation
-            ax = plt.gca(projection=wcs)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                ax = plt.gca(projection=wcs)
             dec = ax.coords['dec']
             dec.set_major_formatter('dd:mm')
             dec.set_ticks_position('br')
@@ -139,6 +181,8 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
             circle_15arcsec = plt.Circle((header['CRPIX1'], header['CRPIX2']), 15/header['PIXSCALE'], fill=False, color='lime', linewidth=1.5)
             ax.add_artist(circle_5arcsec)
             ax.add_artist(circle_15arcsec)
+
+        print_progress_bar(n+1, len(fits_files), prefix='Creating Gif: Frame {}'.format(current_count), time_in=time_in)
         return ax
 
     ax1 = update(0)
@@ -162,7 +206,7 @@ if __name__ == '__main__':
     path = args.path
     fr = args.fr
     ir = args.ir
-    print(fr)
+    print("Base Framerate: {}".format(fr))
     if path[-1] != '/':
         path = path + '/'
     files = np.sort(glob(path+'*.fits.fz'))
