@@ -3,10 +3,12 @@ Creates a guide frame movie gif when given a series of guide frames
 Based on code written by Adam Tedeschi for NeoExchange
 Date: 8/10/2018
 
-Edited 09/04 by Joey Chatelain
-Edited 09/10 by Joey Chatelain -- fix Bounding boxes, clean bottom axis, add frame numbers
-Edited 09/18 by Joey Chatelain -- print Request number rather than tracking number. Make Filename more specific.
-Edited 10/09 by Joey Chatelain -- accomodate older guide frames (from May 2018)
+Edited 2018/09/04 by Joey Chatelain
+Edited 2018/09/10 by Joey Chatelain -- fix Bounding boxes, clean bottom axis, add frame numbers
+Edited 2018/09/18 by Joey Chatelain -- print Request number rather than tracking number. Make Filename more specific.
+Edited 2018/10/09 by Joey Chatelain -- accomodate older guide frames (from May 2018)
+Edited 2019/05/10 by Joey Chatelain -- eliminate projection warning, add progress bar.
+Edited 2019/08/14 by Joey Chatelain -- Add postage stamp option
 """
 
 import sys
@@ -60,13 +62,14 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
         print()
 
 
-def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
+def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, center= False, progress=False):
     """
     takes in list of .fits guide frames and turns them into a moving gif.
     <frames> = list of .fits frame paths
     <title> = [optional] string containing gif title, set to empty string or False for no title
     <sort> = [optional] bool to sort frames by title (Which usually corresponds to date)
-    <fr> = frame rate for output gif in ms/frame [default = 333 ms/frame or 3fps]
+    <fr> = frame rate for output gif in ms/frame [default = 100 ms/frame or 10fps]
+    <init_fr> = frame rate for first 5 frames in ms/frame [default = 1000 ms/frame or 1fps]
     output = savefile (path of gif)
     """
     if sort is True:
@@ -130,20 +133,27 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
         # get data/Header from Fits
         with fits.open(fits_files[n], ignore_missing_end=True) as hdul:
             try:
-                header = hdul['SCI'].header
+                header_n = hdul['SCI'].header
                 data = hdul['SCI'].data
             except KeyError:
                 try:
-                    header = hdul['COMPRESSED_IMAGE'].header
+                    header_n = hdul['COMPRESSED_IMAGE'].header
                     data = hdul['COMPRESSED_IMAGE'].data
                 except KeyError:
-                    header = hdul[0].header
+                    header_n = hdul[0].header
                     data = hdul[0].data
+            if center:
+                shape = data.shape
+                x_frac = int(shape[0]/2.5)
+                y_frac = int(shape[1]/2.5)
+                data = data[x_frac:-x_frac, y_frac:-y_frac]
+                header_n['CRPIX1'] = header_n['CRPIX1'] - x_frac
+                header_n['CRPIX2'] = header_n['CRPIX2'] - y_frac
         # pull Date from Header
         try:
-            date_obs = header['DATE-OBS']
+            date_obs = header_n['DATE-OBS']
         except KeyError:
-            date_obs = header['DATE_OBS']
+            date_obs = header_n['DATE_OBS']
         date = datetime.strptime(date_obs, '%Y-%m-%dT%H:%M:%S.%f')
         # reset plot
         ax = plt.gca()
@@ -152,9 +162,9 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
         z_interval = ZScaleInterval().get_limits(data)  # set z-scale
         try:
             # set wcs grid/axes
-            wcs = WCS(header)  # get wcs transformation
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
+                wcs = WCS(header_n)  # get wcs transformation
                 ax = plt.gca(projection=wcs)
             dec = ax.coords['dec']
             dec.set_major_formatter('dd:mm')
@@ -176,13 +186,14 @@ def make_gif(frames, title=None, sort=True, fr=333, init_fr=None):
         plt.imshow(data, cmap='gray', vmin=z_interval[0], vmax=z_interval[1])
 
         # If first few frames, add 5" and 15" reticle
-        if current_count < 6 and fr != init_fr:
-            circle_5arcsec = plt.Circle((header['CRPIX1'], header['CRPIX2']), 5/header['PIXSCALE'], fill=False, color='limegreen', linewidth=1.5)
-            circle_15arcsec = plt.Circle((header['CRPIX1'], header['CRPIX2']), 15/header['PIXSCALE'], fill=False, color='lime', linewidth=1.5)
+        if (current_count < 6 and fr != init_fr) or tr:
+            circle_5arcsec = plt.Circle((header_n['CRPIX1'], header_n['CRPIX2']), 5/header_n['PIXSCALE'], fill=False, color='limegreen', linewidth=1.5)
+            circle_15arcsec = plt.Circle((header_n['CRPIX1'], header_n['CRPIX2']), 15/header_n['PIXSCALE'], fill=False, color='lime', linewidth=1.5)
             ax.add_artist(circle_5arcsec)
             ax.add_artist(circle_15arcsec)
 
-        print_progress_bar(n+1, len(fits_files), prefix='Creating Gif: Frame {}'.format(current_count), time_in=time_in)
+        if progress:
+            print_progress_bar(n+1, len(fits_files), prefix='Creating Gif: Frame {}'.format(current_count), time_in=time_in)
         return ax
 
     ax1 = update(0)
@@ -202,18 +213,22 @@ if __name__ == '__main__':
     parser.add_argument("path", help="Path to directory containing .fits or .fits.fz files", type=str)
     parser.add_argument("--fr", help="Frame rate in ms/frame (Defaults to 100 ms/frame or 10 frames/second", default=100, type=float)
     parser.add_argument("--ir", help="Frame rate in ms/frame for first 5 frames (Defaults to 1000 ms/frame or 1 frames/second", default=1000, type=float)
+    parser.add_argument("--tr", help="Add target circle at crpix values?", default=False, action="store_true")
+    parser.add_argument("--C", help="Only include Center Snapshot", default=False, action="store_true")
     args = parser.parse_args()
     path = args.path
     fr = args.fr
     ir = args.ir
+    tr = args.tr
+    center = args.C
     print("Base Framerate: {}".format(fr))
     if path[-1] != '/':
-        path = path + '/'
+        path += '/'
     files = np.sort(glob(path+'*.fits.fz'))
     if len(files) < 1:
         files = np.sort(glob(path+'*.fits'))
     if len(files) >= 1:
-        gif_file = make_gif(files, fr=fr, init_fr=ir)
+        gif_file = make_gif(files, fr=fr, init_fr=ir, tr=tr, center=center, progress=True)
         print("New gif created: {}".format(gif_file))
     else:
         print("No files found.")
