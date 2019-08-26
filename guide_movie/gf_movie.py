@@ -154,7 +154,10 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
             date_obs = header_n['DATE-OBS']
         except KeyError:
             date_obs = header_n['DATE_OBS']
-        date = datetime.strptime(date_obs, '%Y-%m-%dT%H:%M:%S.%f')
+        try:
+            date = datetime.strptime(date_obs, '%Y-%m-%dT%H:%M:%S.%f')
+        except ValueError:
+            date = datetime.strptime(date_obs, '%Y-%m-%dT%H:%M:%S')
         # reset plot
         ax = plt.gca()
         ax.clear()
