@@ -150,6 +150,9 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
             data = data[x_frac:-x_frac, y_frac:-y_frac]
             header_n['CRPIX1'] = header_n['CRPIX1'] - x_frac
             header_n['CRPIX2'] = header_n['CRPIX2'] - y_frac
+
+        # dat_med = np.median(data)
+        # data -= dat_med
         # pull Date from Header
         try:
             date_obs = header_n['DATE-OBS']

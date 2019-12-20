@@ -206,9 +206,9 @@ if __name__ == '__main__':
     title = args.title
     trace = 'test'
     reflec = True
-    if path[-1] != '/':
+    if path and path[-1] != '/':
         path = path + '/'
-    if outpath[-1] != '/':
+    if outpath and outpath[-1] != '/':
         outpath = outpath + '/'
 
     fig = plt.figure()
@@ -247,7 +247,8 @@ if __name__ == '__main__':
             ax, normalized_ast_spec, ast_wav = spectrum_plot(path+trace, ax, label, sol_path_trace)
 
         if reflec:
-            ax.set_ylabel('Reflectance Spectra (Normalized at $5500 \AA$)')
+            ax.set_ylabel('Relative to Airmass 1.24 (Normalized at $5500 \AA$)')
+            # ax.set_ylabel('Reflectance Spectra (Normalized at $5500 \AA$)')
         else:
             ax.set_ylabel('Relative Spectra (Normalized at $5500 \AA$)')
         ax.set_xlabel('Wavelength ($\AA$)')
