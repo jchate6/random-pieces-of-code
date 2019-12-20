@@ -14,6 +14,7 @@ Edited 2019/08/14 by Joey Chatelain -- Add postage stamp option
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from matplotlib.animation import FuncAnimation
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -62,7 +63,7 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
         print()
 
 
-def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, center= False, progress=False):
+def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, center=False, progress=False):
     """
     takes in list of .fits guide frames and turns them into a moving gif.
     <frames> = list of .fits frame paths
@@ -142,13 +143,13 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
                 except KeyError:
                     header_n = hdul[0].header
                     data = hdul[0].data
-            if center:
-                shape = data.shape
-                x_frac = int(shape[0]/2.5)
-                y_frac = int(shape[1]/2.5)
-                data = data[x_frac:-x_frac, y_frac:-y_frac]
-                header_n['CRPIX1'] = header_n['CRPIX1'] - x_frac
-                header_n['CRPIX2'] = header_n['CRPIX2'] - y_frac
+        if center:
+            shape = data.shape
+            x_frac = int(shape[0]/2.5)
+            y_frac = int(shape[1]/2.5)
+            data = data[x_frac:-x_frac, y_frac:-y_frac]
+            header_n['CRPIX1'] = header_n['CRPIX1'] - x_frac
+            header_n['CRPIX2'] = header_n['CRPIX2'] - y_frac
         # pull Date from Header
         try:
             date_obs = header_n['DATE-OBS']
@@ -186,7 +187,10 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
         current_count = len(np.unique(fits_files[:n+1]))
         ax.set_title('UT Date: {} ({} of {})'.format(date.strftime('%x %X'), current_count, int(len(fits_files)-(copies-1)*start_frames)), pad=10)
 
-        plt.imshow(data, cmap='gray', vmin=z_interval[0], vmax=z_interval[1])
+        # norm = colors.SymLogNorm(linthresh=np.std(data), linscale=.1, vmin=z_interval[0], vmax=z_interval[1])
+        # norm = colors.SymLogNorm(linthresh=np.std(data), linscale=.5, vmin=-50, vmax=70)
+        norm = colors.PowerNorm(gamma=1, vmin=z_interval[0], vmax=z_interval[1])
+        plt.imshow(data, cmap='gray', norm=norm)
 
         # If first few frames, add 5" and 15" reticle
         if (current_count < 6 and fr != init_fr) or tr:

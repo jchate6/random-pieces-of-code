@@ -197,13 +197,19 @@ def spectrum_plot(spectra, ax, data_set, analog=None, offset=0):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", help="Output path for plots", type=str, default='')
+    parser.add_argument("--outpath", help="Output path for plots", type=str, default='')
+    parser.add_argument("--path", help="base path spectra", type=str, default='')
     parser.add_argument("--title", help="Title for Plot", type=str, default='Normalized Spectra')
     args = parser.parse_args()
     path = args.path
+    outpath = args.outpath
     title = args.title
     trace = 'test'
     reflec = True
+    if path[-1] != '/':
+        path = path + '/'
+    if outpath[-1] != '/':
+        outpath = outpath + '/'
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, title=title)
@@ -229,13 +235,16 @@ if __name__ == '__main__':
             sol_trace = input("Path to solar analog trace:")
             if not sol_trace:
                 reflec = False
+                sol_path_trace = ''
+            else:
+                sol_path_trace = path+sol_trace
 
             print("=========================================================================")
             print("Input label for these data (Leave blank for default, for no label type 'None').")
             print("Default = {object} -- {analog} -- {obj date}")
             label = input("Data label:")
 
-            ax, normalized_ast_spec, ast_wav = spectrum_plot(trace, ax, label, sol_trace)
+            ax, normalized_ast_spec, ast_wav = spectrum_plot(path+trace, ax, label, sol_path_trace)
 
         if reflec:
             ax.set_ylabel('Reflectance Spectra (Normalized at $5500 \AA$)')
@@ -243,5 +252,5 @@ if __name__ == '__main__':
             ax.set_ylabel('Relative Spectra (Normalized at $5500 \AA$)')
         ax.set_xlabel('Wavelength ($\AA$)')
         ax.legend()
-        plt.savefig(path+'temp.png')
-        print('New spectroscopy plot saved to {}'.format(path+'temp.png'))
+        plt.savefig(outpath+'temp.png')
+        print('New spectroscopy plot saved to {}'.format(outpath+'temp.png'))
