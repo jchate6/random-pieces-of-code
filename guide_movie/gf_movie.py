@@ -184,7 +184,7 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
             ra.set_ticklabel_position('lb')
             ra.set_ticklabel(fontsize=10, exclude_overlapping=True)
             ax.coords.grid(color='black', ls='solid', alpha=0.5)
-        except InvalidTransformError:
+        except (InvalidTransformError, AttributeError):
             pass
         # finish up plot
         current_count = len(np.unique(fits_files[:n+1]))
@@ -196,7 +196,7 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
         plt.imshow(data, cmap='gray', norm=norm)
 
         # If first few frames, add 5" and 15" reticle
-        if (current_count < 6 and fr != init_fr) or tr:
+        if (current_count < 6 and fr != init_fr) and tr:
             circle_5arcsec = plt.Circle((header_n['CRPIX1'], header_n['CRPIX2']), 5/header_n['PIXSCALE'], fill=False, color='limegreen', linewidth=1.5)
             circle_15arcsec = plt.Circle((header_n['CRPIX1'], header_n['CRPIX2']), 15/header_n['PIXSCALE'], fill=False, color='lime', linewidth=1.5)
             ax.add_artist(circle_5arcsec)
@@ -212,7 +212,7 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
     # takes in fig, update function, and frame rate set to fr
     anim = FuncAnimation(fig, update, frames=len(fits_files), blit=False, interval=fr)
 
-    savefile = os.path.join(path, obj.replace(' ', '_') + '_' + rn + '_guidemovie.gif')
+    savefile = os.path.join(path, obj.replace(' ', '_').replace('/', '_') + '_' + rn + '_guidemovie.gif')
     anim.save(savefile, dpi=90, writer='imagemagick')
 
     return savefile
