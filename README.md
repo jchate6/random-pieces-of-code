@@ -1,1 +1,1 @@
-# random-peices-of-code
+# random-pieces-of-code
