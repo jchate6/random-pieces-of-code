@@ -117,11 +117,12 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
             inst = ' '
 
     if title is None:
-        title = 'Request Number {} -- {} at {} ({})'.format(rn, obj, site, inst)
+        # title = 'Request Number {} -- {} at {} ({})'.format(rn, obj, site, inst)
+        title = 'LCOGT 1 meter Telescope at SAAO South Africa'
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 10))
     if title:
-        fig.suptitle(title)
+        fig.suptitle(title, size='25', y=.93)
 
     time_in = datetime.now()
 
@@ -188,7 +189,7 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
             pass
         # finish up plot
         current_count = len(np.unique(fits_files[:n+1]))
-        ax.set_title('UT Date: {} ({} of {})'.format(date.strftime('%x %X'), current_count, int(len(fits_files)-(copies-1)*start_frames)), pad=10)
+        ax.set_title('UT Date: {} ({} of {})'.format(date.strftime('%x %X'), current_count, int(len(fits_files)-(copies-1)*start_frames)), pad=10, size='25')
 
         # norm = colors.SymLogNorm(linthresh=np.std(data), linscale=.1, vmin=z_interval[0], vmax=z_interval[1])
         # norm = colors.SymLogNorm(linthresh=np.std(data), linscale=.5, vmin=-50, vmax=70)
