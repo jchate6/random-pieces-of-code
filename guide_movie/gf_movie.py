@@ -94,30 +94,34 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
 
     # pull header information from first fits file
     with fits.open(fits_files[0], ignore_missing_end=True) as hdul:
-        try:
-            header = hdul['SCI'].header
-        except KeyError:
+        if no_header is False:
             try:
-                header = hdul['COMPRESSED_IMAGE'].header
+                header = hdul['SCI'].header
             except KeyError:
-                header = hdul[0].header
-        # create title
-        obj = header['OBJECT']
-        try:
-            rn = header['REQNUM'].lstrip('0')
-        except KeyError:
-            rn = 'UNKNOWN'
-        try:
-            site = header['SITEID'].upper()
-        except KeyError:
-            site = ' '
-        try:
-            inst = header['INSTRUME'].upper()
-        except KeyError:
-            inst = ' '
+                try:
+                    header = hdul['COMPRESSED_IMAGE'].header
+                except KeyError:
+                    header = hdul[0].header
+            # create title
+            obj = header['OBJECT']
+            try:
+                rn = header['REQNUM'].lstrip('0')
+            except KeyError:
+                rn = 'UNKNOWN'
+            try:
+                site = header['SITEID'].upper()
+            except KeyError:
+                site = ' '
+            try:
+                inst = header['INSTRUME'].upper()
+            except KeyError:
+                inst = ' '
 
     if title is None:
-        title = 'Request Number {} -- {} at {} ({})'.format(rn, obj, site, inst)
+        if no_header is False:
+            title = 'Request Number {} -- {} at {} ({})'.format(rn, obj, site, inst)
+        else:
+            title = ""
 
     fig = plt.figure()
     if title:
@@ -212,8 +216,18 @@ def make_gif(frames, title=None, sort=True, fr=100, init_fr=1000, tr=False, cent
     # takes in fig, update function, and frame rate set to fr
     anim = FuncAnimation(fig, update, frames=len(fits_files), blit=False, interval=fr)
 
-    savefile = os.path.join(path, obj.replace(' ', '_').replace('/', '_') + '_' + rn + '_guidemovie.gif')
-    anim.save(savefile, dpi=90, writer='imagemagick')
+    try:
+        savefile = os.path.join(path, obj.replace(' ', '_').replace('/', '_') + '_' + rn + '_guidemovie.gif')
+    except UnboundLocalError:
+        savefile = os.path.join(path, 'new_guidemovie.gif')
+
+    if gif_size.upper() == "MEDIUM":
+        dpi = 180
+    elif gif_size.upper() == "LARGE":
+        dpi = 270
+    else:
+        dpi = 90
+    anim.save(savefile, dpi=dpi, writer='imagemagick')
 
     return savefile
 
@@ -222,15 +236,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Path to directory containing .fits or .fits.fz files", type=str)
     parser.add_argument("--fr", help="Frame rate in ms/frame (Defaults to 100 ms/frame or 10 frames/second", default=100, type=float)
-    parser.add_argument("--ir", help="Frame rate in ms/frame for first 5 frames (Defaults to 1000 ms/frame or 1 frames/second", default=1000, type=float)
+    parser.add_argument("--ir", help="Frame rate in ms/frame for first 5 frames (Defaults to 100 ms/frame or 10 frames/second)", default=100, type=float)
     parser.add_argument("--tr", help="Add target circle at crpix values?", default=False, action="store_true")
     parser.add_argument("--C", help="Only include Center Snapshot", default=False, action="store_true")
+    parser.add_argument("--nh", help="Don't rely on header for Object/request information", default=False, action="store_true")
+    parser.add_argument("--gs", help="Size of final gif (Small, Medium, Large)", default="small", type=str)
     args = parser.parse_args()
     path = args.path
     fr = args.fr
     ir = args.ir
     tr = args.tr
     center = args.C
+    no_header = args.nh
+    gif_size = args.gs
+
     print("Base Framerate: {}".format(fr))
     if path[-1] != '/':
         path += '/'
