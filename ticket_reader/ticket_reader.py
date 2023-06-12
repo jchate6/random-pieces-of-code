@@ -29,9 +29,9 @@ def get_ticket(data, id):
             # Print Body of Ticket conversation
             print(ticket["description"])
             print("=====================================================================")
-            break
-        else:
-            print(f"Sorry, Ticket Number {id} does not exist.")
+            return
+
+    print(f"Sorry, Ticket Number {id} does not exist.")
     return
 
 
@@ -58,7 +58,7 @@ def save_ticket_text(path, data, csv_filename='lco_ticket_text.csv'):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("json_file", help="Path and filename for zendesk json file (foo/bar.json)", type=str)
-    parser.add_argument("-all", help="Output all data into 'lco_ticket_text.csv' in json file directory.", default=False, action="store_true")
+    parser.add_argument("-all", help="Output all data into 'lco_ticket_text.csv' in json_file directory.", default=False, action="store_true")
     args = parser.parse_args()
 
     # Extact json data from file
