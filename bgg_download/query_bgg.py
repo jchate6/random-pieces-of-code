@@ -175,7 +175,6 @@ if __name__ == '__main__':
     try_hard = args.th
 
     input_file = 'input_list.csv'
-    # input_file = 'new_input.csv'
     done_id_cache_file = 'done_id_cache.txt'
     done_name_cache_file = 'done_name_cache.txt'
     bad_cache_file = 'bad_cache.txt'
