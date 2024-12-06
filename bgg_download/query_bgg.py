@@ -52,7 +52,7 @@ class XmlDictConfig(dict):
 def get_correct_game_id(game_name, limit=10, try_hard=False):
 
     if try_hard:
-        th_name = game_name.split('-')[0].split('(')[0]
+        th_name = game_name.split('-')[0].split('(')[0].replace('DEMO', '').strip()
         params = {'search': th_name}
     else:
         params = {'search': game_name}
