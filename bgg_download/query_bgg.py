@@ -2,6 +2,7 @@ import requests
 import xml.etree.ElementTree as ET
 import csv
 import argparse
+from bs4 import BeautifulSoup
 
 
 class XmlDictConfig(dict):
@@ -52,7 +53,7 @@ class XmlDictConfig(dict):
 def get_correct_game_id(game_name, limit=10, try_hard=False):
 
     if try_hard:
-        th_name = game_name.split('-')[0].split('(')[0].replace('DEMO', '').strip()
+        th_name = game_name.split(',')[0].split('-')[0].split('(')[0].replace('DEMO', '').strip()
         params = {'search': th_name}
     else:
         params = {'search': game_name}
@@ -95,54 +96,61 @@ def get_correct_game_id(game_name, limit=10, try_hard=False):
     return games_id
 
 
-def get_game_data(games):
-    game_data = []
-    for game_id in games:
-        game_response = requests.get(url=f'{game_url}/{game_id}', params={'stats': 1})
-        game_root = ET.XML(game_response.text)
-        game_dict = XmlDictConfig(game_root)
+def get_game_data(game_id):
+    game_response = requests.get(url=f'{game_url}/{game_id}', params={'stats': 1})
+    game_root = ET.XML(game_response.text)
+    game_dict = XmlDictConfig(game_root)
 
-        data_dict = {
-            'min_players': game_dict['boardgame']['minplayers'],
-            'max_players': game_dict['boardgame']['maxplayers'],
-            'min_playtime': game_dict['boardgame']['minplaytime'],
-            'max_playtime': game_dict['boardgame']['maxplaytime'],
-            'min_age': game_dict['boardgame']['age'],
-            'complexity': game_dict['boardgame']['statistics']['ratings']['averageweight'],
-            'rating': game_dict['boardgame']['statistics']['ratings']['average'],
-        }
-        for poll in game_dict['boardgame']['poll-summary']['result']:
-            if poll['name'] == 'bestwith':
-                best_players = poll['value'].replace('Best with ', '').replace(' players', '')
-                break
-            else:
-                best_players = None
+    data_dict = {
+        'min_players': game_dict['boardgame']['minplayers'],
+        'max_players': game_dict['boardgame']['maxplayers'],
+        'min_playtime': game_dict['boardgame']['minplaytime'],
+        'max_playtime': game_dict['boardgame']['maxplaytime'],
+        'min_age': game_dict['boardgame']['age'],
+        'complexity': game_dict['boardgame']['statistics']['ratings']['averageweight'],
+        'rating': game_dict['boardgame']['statistics']['ratings']['average'],
+    }
+    for poll in game_dict['boardgame']['poll-summary']['result']:
+        if poll['name'] == 'bestwith':
+            best_players = poll['value'].replace('Best with ', '').replace(' players', '')
+            break
         else:
             best_players = None
-        data_dict['best_players'] = best_players
-        tags = []
-        types_list = game_dict['boardgame']['statistics']['ratings']['ranks']['rank']
-        if not isinstance(types_list, list):
-            types_list = [types_list]
-        for bg_type in types_list:
-            if bg_type['name'] != 'boardgame':
-                tags.append(bg_type['name'].replace('games', ''))
-        data_dict['tags'] = ', '.join(tags)
-        name_list = game_dict['boardgame']['name']
-        if not isinstance(name_list, list):
-            name_list = [name_list]
-        for name in name_list:
-            if name.get('primary') == 'true':
-                primary_name = name.get('name')
-        data_dict['name'] = primary_name
-        game_data.append(data_dict)
-    return game_data
+    else:
+        best_players = None
+    data_dict['best_players'] = best_players
+    tags = []
+    types_list = game_dict['boardgame']['statistics']['ratings']['ranks']['rank']
+    if not isinstance(types_list, list):
+        types_list = [types_list]
+    for bg_type in types_list:
+        if bg_type['name'] != 'boardgame':
+            tags.append(bg_type['name'].replace('games', ''))
+    data_dict['tags'] = ', '.join(tags)
+    name_list = game_dict['boardgame']['name']
+    if not isinstance(name_list, list):
+        name_list = [name_list]
+    for name in name_list:
+        if name.get('primary') == 'true':
+            primary_name = name.get('name')
+    data_dict['name'] = primary_name
+    data_dict['description'] = get_game_description(game_id)
+    return data_dict
+
+
+def get_game_description(game_id):
+    frontend_url = f'https://boardgamegeek.com/boardgame/{game_id}'
+    soup = BeautifulSoup(requests.get(frontend_url).content, 'html.parser')
+    for elem in soup.find_all('meta'):
+        if elem.get('name') == 'description':
+            description = ''.join(elem.get('content').splitlines())
+            return description
 
 
 def write_csv(game_data):
     with open('bgg_outputs.csv', 'w', newline='') as csvfile:
         fieldnames = ['name', 'min_players', 'max_players', 'best_players', 'complexity', 'min_playtime', 'max_playtime',
-                      'min_age', 'rating', 'tags']
+                      'min_age', 'rating', 'tags', 'description']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(game_data)
@@ -151,9 +159,8 @@ def write_csv(game_data):
 def open_csv(input_file):
     games_list = []
     with open(input_file, 'r') as f:
-        reader = csv.reader(f)
-        for lines in reader:
-            games_list.append(lines[0])
+        for line in f:
+            games_list.append(line.strip())
     return games_list
 
 
@@ -204,6 +211,7 @@ if __name__ == '__main__':
 
     game_ids = open_csv(done_id_cache_file)
     no_game_found = []
+    game_data = []
     for game_name in games_list:
         game_id = get_correct_game_id(game_name, try_hard=try_hard)
         if game_id is None:
@@ -212,10 +220,11 @@ if __name__ == '__main__':
             game_ids.append(game_id)
             save_ids(done_id_cache_file, game_id)
             save_ids(done_name_cache_file, game_name)
+            game_data.append(get_game_data(game_id))
         else:
             no_game_found.append(game_name)
             save_ids(bad_cache_file, game_name)
+            game_data.append({'name': game_name})
 
-    game_data = get_game_data(game_ids)
     write_csv(game_data)
     print(no_game_found)
